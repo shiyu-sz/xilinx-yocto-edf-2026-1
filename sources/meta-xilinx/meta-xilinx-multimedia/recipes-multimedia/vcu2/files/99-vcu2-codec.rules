@@ -1,0 +1,4 @@
+# Allegro VCU2 Encode, Decoder module drivers
+SUBSYSTEM=="misc", KERNEL=="al_e2xx", MODE="0660", GROUP="video"
+SUBSYSTEM=="misc", KERNEL=="al_d3xx", MODE="0660", GROUP="video"
+

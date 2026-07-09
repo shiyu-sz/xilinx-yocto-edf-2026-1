@@ -1,0 +1,24 @@
+args:
+    - --hw-description https://edf.amd.com/sswreleases/rel-v2026.1/sdt/2026.1/2026.1_0609_1_06092108/external/zynqmp-zcu102-sdt-full/zynqmp-zcu102-sdt-full_2026.1_0609_1_06092108.tar.gz
+    - --machine-name zynqmp-zcu102-sdt-full
+    - -g full
+
+kconfig:
+    CONFIG_SUBSYSTEM_BOOTMODE_5: y
+
+machine:
+    description: >-
+        Machine configuration for the AMD Zynq UltraScale+ MPSoC ZCU102
+        evaluation kit (Cortex-A53 Linux plus FSBL and MicroBlaze PMU
+        sub-machines), built from system device tree.
+    pre:
+    post:
+        QB_MEM:
+            op: '='
+            val: "-m 4G"
+        QEMU_HW_DTB_PS:
+            op: '='
+            val: "${QEMU_HW_DTB_PATH}/board-zynqmp-zcu102.dtb"
+        QEMU_HW_DTB_PMU:
+            op: '='
+            val: "${QEMU_HW_DTB_PATH}/zynqmp-pmu.dtb"
