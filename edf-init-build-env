@@ -56,6 +56,21 @@ if [ -z "$FAIL" ]; then
     BASH_SOURCE=$ROOT/sources/poky/oe-init-build-env
     . $ROOT/sources/poky/oe-init-build-env "$@"
 
+    # Keep the repository-local EBAZ4205 BSP active even when a new build
+    # directory is generated from AMD's default template.
+    if [ -f "$BUILDDIR/conf/bblayers.conf" ] && \
+       ! grep -Fq "$ROOT/meta-ebaz4205" "$BUILDDIR/conf/bblayers.conf"; then
+        sed -i "/^BBLAYERS ?= \" \\\\/a\\  $ROOT/meta-ebaz4205 \\\\" \
+            "$BUILDDIR/conf/bblayers.conf"
+    fi
+
+    # Select this repository's board while retaining MACHINE ??= semantics, so
+    # callers may still override MACHINE from their environment when needed.
+    if [ -z "$FAIL" ] && [ -f "$BUILDDIR/conf/local.conf" ]; then
+        sed -i 's/^MACHINE ??= ".*"/MACHINE ??= "ebaz4205-zynq7"/' \
+            "$BUILDDIR/conf/local.conf"
+    fi
+
     # We set TEMPLATECONF, so clear this
     if [ -n ${CLEANTEMPLATE} ]; then
         unset -v TEMPLATECONF CLEANTEMPLATE

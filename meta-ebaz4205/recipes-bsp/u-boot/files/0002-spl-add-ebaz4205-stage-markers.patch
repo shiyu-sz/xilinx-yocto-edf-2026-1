@@ -1,0 +1,70 @@
+From 2da4c778d3bb15bc5cf38f9d01444785229fc62f Mon Sep 17 00:00:00 2001
+From: EBAZ4205 BSP <ebaz4205@example.invalid>
+Date: Wed, 22 Jul 2026 10:30:00 +0800
+Subject: [PATCH] spl: add EBAZ4205 pre-console stage markers
+
+The regular SPL console is initialized late in board_init_r(). Emit markers
+with the board's OCM-only early UART helper so a reset before that point can
+be narrowed to one initialization step.
+
+Signed-off-by: EBAZ4205 BSP <ebaz4205@example.invalid>
+---
+ common/spl/spl.c | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
+
+diff --git a/common/spl/spl.c b/common/spl/spl.c
+--- a/common/spl/spl.c
++++ b/common/spl/spl.c
+@@ -46,6 +46,8 @@
+ DECLARE_GLOBAL_DATA_PTR;
+ DECLARE_BINMAN_MAGIC_SYM;
+ 
++extern void ebaz4205_early_uart_puts(const char *text);
++
+ u32 *boot_params_ptr = NULL;
+ 
+ #if CONFIG_IS_ENABLED(BINMAN_UBOOT_SYMBOLS)
+@@ -700,19 +702,27 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
+ 	int ret, os;
+ 	void *fdt;
+ 
++	ebaz4205_early_uart_puts("EBAZ4205 SPL: board_init_r entry\r\n");
+ 	debug(">>" PHASE_PROMPT "board_init_r()\n");
+ 
+ 	spl_set_bd();
++	ebaz4205_early_uart_puts("EBAZ4205 SPL: spl_set_bd OK\r\n");
+ 
+ 	if (IS_ENABLED(CONFIG_SPL_SYS_MALLOC)) {
+ 		mem_malloc_init(SPL_SYS_MALLOC_START, SPL_SYS_MALLOC_SIZE);
+ 		gd->flags |= GD_FLG_FULL_MALLOC_INIT;
+ 	}
++	ebaz4205_early_uart_puts("EBAZ4205 SPL: malloc init OK\r\n");
+ 	if (!(gd->flags & GD_FLG_SPL_INIT)) {
+-		if (spl_init())
++		ebaz4205_early_uart_puts("EBAZ4205 SPL: spl_init start\r\n");
++		if (spl_init()) {
++			ebaz4205_early_uart_puts("EBAZ4205 SPL: spl_init FAILED\r\n");
+ 			hang();
++		}
+ 	}
++	ebaz4205_early_uart_puts("EBAZ4205 SPL: spl_init OK\r\n");
+ 	timer_init();
++	ebaz4205_early_uart_puts("EBAZ4205 SPL: timer_init OK\r\n");
+ 	if (CONFIG_IS_ENABLED(BLOBLIST)) {
+ 		ret = bloblist_init();
+ 		if (ret) {
+@@ -732,8 +742,11 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
+ 		}
+ 	}
+ 
+-	if (CONFIG_IS_ENABLED(SOC_INIT))
++	if (CONFIG_IS_ENABLED(SOC_INIT)) {
++		ebaz4205_early_uart_puts("EBAZ4205 SPL: spl_soc_init start\r\n");
+ 		spl_soc_init();
++		ebaz4205_early_uart_puts("EBAZ4205 SPL: spl_soc_init OK\r\n");
++	}
+ 
+ 	if (IS_ENABLED(CONFIG_SPL_WATCHDOG) && CONFIG_IS_ENABLED(WDT))
+ 		initr_watchdog();
+-- 
+2.43.0
